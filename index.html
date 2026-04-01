@@ -167,10 +167,16 @@
     </div>
 
     <!-- NOTIFICACIÓN TIPO TOAST INTEGRADA -->
-    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-full shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center text-sm font-medium">
-        <i id="toast-icon" class="fas fa-info-circle mr-2"></i>
-        <span id="toast-msg">Mensaje</span>
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-full shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center text-sm font-medium w-11/12 max-w-sm">
+        <i id="toast-icon" class="fas fa-info-circle mr-2 shrink-0"></i>
+        <span id="toast-msg" class="truncate">Mensaje</span>
     </div>
+
+    <!-- AUDIO DE NOTIFICACIÓN -->
+    <audio id="alert-sound" preload="auto">
+        <!-- Sonido de alarma corto y profesional provisto por la CDN pública de Google -->
+        <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    </audio>
 
     <script>
         // --- 1. DATOS Y CONFIGURACIÓN INICIAL ---
@@ -191,6 +197,8 @@
 
         let currentTab = 'hoy';
         let viewDate = getTodayDateString();
+        
+        const audioAlert = document.getElementById('alert-sound');
 
         // --- 2. FUNCIONES DE UTILIDAD ---
         function getTodayDateString() {
@@ -221,11 +229,11 @@
             document.getElementById('toast-msg').innerText = msg;
             
             if(type === 'success') {
-                icon.className = 'fas fa-check-circle mr-2 text-green-400';
+                icon.className = 'fas fa-check-circle mr-2 text-green-400 shrink-0';
             } else if (type === 'warning') {
-                icon.className = 'fas fa-exclamation-triangle mr-2 text-amber-400';
+                icon.className = 'fas fa-exclamation-triangle mr-2 text-amber-400 shrink-0';
             } else {
-                icon.className = 'fas fa-info-circle mr-2 text-blue-400';
+                icon.className = 'fas fa-info-circle mr-2 text-blue-400 shrink-0';
             }
 
             toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4', 'scale-95');
@@ -234,7 +242,7 @@
             setTimeout(() => {
                 toast.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
                 toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4', 'scale-95');
-            }, 2500);
+            }, 3000); // Aumentado un poco el tiempo para leer mensajes largos
         }
 
         // --- 3. LÓGICA DE VISTAS ---
@@ -334,6 +342,17 @@
                 title.innerHTML = '<i class="fas fa-sliders-h mr-2"></i> Ajustes';
                 subtitle.innerText = 'Gestiona tus tareas y alertas';
 
+                // Botón permiso notificaciones y sonido (Desbloqueo de Audio)
+                const notifPermDiv = document.createElement('div');
+                notifPermDiv.className = 'mb-4';
+                notifPermDiv.innerHTML = `
+                    <button onclick="testNotificationAndSound()" class="w-full bg-blue-100 text-blue-700 p-3 rounded-xl border border-blue-200 text-sm font-medium flex items-center justify-center gap-2 btn-active">
+                        <i class="fas fa-volume-up"></i> Probar Sonido y Notificaciones
+                    </button>
+                    <p class="text-[10px] text-slate-500 mt-1.5 text-center leading-tight">Presiona este botón si las alarmas no suenan. Asegúrate de tener el volumen del contenido multimedia subido.</p>
+                `;
+                main.appendChild(notifPermDiv);
+
                 // Añadir nueva tarea
                 const addDiv = document.createElement('div');
                 addDiv.className = 'bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 mb-4';
@@ -346,23 +365,26 @@
                 `;
                 main.appendChild(addDiv);
 
-                // Lista de configuración
+                // Lista de configuración (AHORA TODAS SE PUEDEN EDITAR/BORRAR)
                 const listDiv = document.createElement('div');
-                listDiv.className = 'space-y-3';
+                listDiv.className = 'space-y-3 pb-4';
                 
                 tasks.forEach(task => {
                     const taskCard = document.createElement('div');
                     taskCard.className = 'bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2.5';
                     taskCard.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <p class="text-[13px] font-medium text-slate-700 leading-snug flex-1 pr-2">${task.text}</p>
-                            ${task.type === 'custom' ? `<button onclick="deleteTask('${task.id}')" class="text-red-400 hover:text-red-600 p-1 btn-active"><i class="fas fa-trash"></i></button>` : ''}
+                        <div class="flex justify-between items-start gap-2">
+                            <p class="text-[13px] font-medium text-slate-700 leading-snug flex-1">${task.text}</p>
+                            <div class="flex gap-1 shrink-0">
+                                <button onclick="editTask('${task.id}')" class="text-blue-500 hover:text-blue-700 p-2 bg-slate-50 border border-slate-200 rounded-lg btn-active transition-colors"><i class="fas fa-pencil-alt"></i></button>
+                                <button onclick="deleteTask('${task.id}')" class="text-red-500 hover:text-red-700 p-2 bg-slate-50 border border-slate-200 rounded-lg btn-active transition-colors"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
-                        <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-100 mt-1">
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" class="sr-only peer" ${task.notify ? 'checked' : ''} onchange="toggleNotify('${task.id}', this.checked)">
                                 <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-500"></div>
-                                <span class="ml-2 text-[11px] font-medium text-slate-600"><i class="fas fa-bell ${task.notify ? 'text-blue-500' : 'text-slate-400'} mr-1"></i>Aviso</span>
+                                <span class="ml-2 text-[11px] font-medium text-slate-600"><i class="fas fa-bell ${task.notify ? 'text-blue-500' : 'text-slate-400'} mr-1"></i>Activar Alarma</span>
                             </label>
                             <input type="time" value="${task.time || '09:00'}" onchange="updateTaskTime('${task.id}', this.value)" class="p-1 border border-slate-200 rounded text-xs text-slate-700 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
                         </div>
@@ -438,7 +460,6 @@
         }
 
         // --- 4. ACCIONES DE TAREAS Y ACTUALIZACIÓN DIRECTA (DOM) ---
-        // Actualiza sin recargar toda la lista para evitar retrasos "toscos"
         function handleTaskToggle(taskId, dateKey, isChecked) {
             if (!history[dateKey]) history[dateKey] = {};
             const time = getCurrentTime();
@@ -484,7 +505,7 @@
             const text = input.value.trim();
             if (text) {
                 const newTask = {
-                    id: 'custom_' + Date.now(),
+                    id: 'task_' + Date.now(),
                     text: text,
                     type: 'custom',
                     notify: false,
@@ -500,11 +521,28 @@
             }
         }
 
+        // NUEVO: Función para editar el texto de cualquier tarea
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                const newText = prompt('Edita la tarea:', task.text);
+                // Si el usuario no cancela y el texto no está vacío
+                if (newText !== null && newText.trim() !== '') {
+                    task.text = newText.trim();
+                    saveData();
+                    renderContent();
+                    showToast('Tarea editada con éxito');
+                }
+            }
+        }
+
+        // ACTUALIZADO: Permite eliminar cualquier tarea
         function deleteTask(taskId) {
-            if(confirm('¿Eliminar esta tarea de tu lista diaria?')) {
+            if(confirm('¿Seguro que quieres eliminar esta tarea de tu rutina?')) {
                 tasks = tasks.filter(t => t.id !== taskId);
                 saveData();
                 renderContent();
+                showToast('Tarea eliminada');
             }
         }
 
@@ -514,8 +552,8 @@
                 task.notify = isChecked;
                 saveData();
                 if (isChecked) {
-                    requestNotificationPermission();
-                    showToast(`Aviso activado para las ${task.time}`);
+                    testNotificationAndSound(true); // Desbloquea el sonido silenciosamente
+                    showToast(`Alarma activada para las ${task.time}`);
                 }
             }
         }
@@ -529,24 +567,42 @@
             }
         }
 
-        // --- 5. SISTEMA DE NOTIFICACIONES ---
-        function requestNotificationPermission() {
-            if (!("Notification" in window)) return;
-            if (Notification.permission !== "denied" && Notification.permission !== "granted") {
+        // --- 5. SISTEMA DE NOTIFICACIONES Y SONIDO ---
+        
+        // Reproducir el sonido y pedir permisos
+        function testNotificationAndSound(silent = false) {
+            // Reproducir sonido para desbloquear el contexto de audio del navegador
+            audioAlert.currentTime = 0;
+            audioAlert.play().catch(e => console.log("Audio aún bloqueado, el usuario debe interactuar más.", e));
+            
+            if ("Notification" in window && Notification.permission !== "granted") {
                 Notification.requestPermission();
+            }
+
+            if (!silent) {
+                showToast("¡Prueba exitosa! Si no escuchaste nada, sube el volumen multimedia de tu celular.", "info");
+                if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
             }
         }
 
         function sendNotification(title, body) {
+            // 1. Tocar el sonido
+            audioAlert.currentTime = 0;
+            audioAlert.play().catch(e => console.log("No se pudo reproducir el sonido en background.", e));
+
+            // 2. Vibrar
+            if ("vibrate" in navigator) {
+                navigator.vibrate([300, 200, 300, 200, 500]); // Patrón de vibración más largo
+            }
+
+            // 3. Notificación del sistema o Toast
             if ("Notification" in window && Notification.permission === "granted") {
                 new Notification(title, {
                     body: body,
                     icon: "https://cdn-icons-png.flaticon.com/512/2645/2645879.png"
                 });
-                if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
             } else {
-                showToast(`🔔 Recordatorio: ${body}`);
-                if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+                showToast(`🔔 ALARMA: ${body}`, 'info');
             }
         }
 
@@ -561,26 +617,32 @@
                 saveData();
             }
 
+            let triggered = false;
+
             tasks.forEach(task => {
                 if (task.notify && task.time === currentTime) {
                     const notifyKey = `${todayStr}_${task.id}`;
                     const isCompleted = history[todayStr] && history[todayStr].hasOwnProperty(task.id);
                     
                     if (!isCompleted && !notificationsSent[notifyKey]) {
-                        sendNotification("Recordatorio de Tarea", task.text);
+                        // Enviar notificación sonora y visual
+                        sendNotification("Recordatorio Pendiente", task.text);
                         notificationsSent[notifyKey] = true;
+                        triggered = true;
                         saveData();
                     }
                 }
             });
             
+            // Refrescar UI si el día cambia a medianoche
             if(currentTab === 'hoy' && viewDate !== todayStr && new Date().getHours() === 0 && new Date().getMinutes() === 0) {
                  viewDate = todayStr;
                  renderContent();
             }
         }
 
-        setInterval(checkNotifications, 60000);
+        // Comprobación cada 30 segundos para no fallar el minuto exacto
+        setInterval(checkNotifications, 30000);
 
         // --- 6. INICIALIZACIÓN ---
         window.onload = () => {
@@ -589,7 +651,7 @@
                 splash.classList.add('splash-hidden');
                 setTimeout(() => splash.remove(), 800); 
                 renderContent();
-            }, 1500); // Reducido el tiempo de splash screen a 1.5s
+            }, 1500);
             checkNotifications();
         };
 
