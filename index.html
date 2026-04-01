@@ -2,610 +2,545 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analista de Operaciones</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome para los íconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Configuración para que se vea como app nativa al agregar a inicio -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="theme-color" content="#F3F4F6">
-    <title>Control Dársena</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Iconos Lucide -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Librerías Lógica -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
-    <!-- Fuente Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#1e3a8a">
 
     <style>
-        /* --- ESTILO PREMIUM V9.3 --- */
+        /* Animaciones y estilos personalizados */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #F3F4F6;
-            color: #111827;
             -webkit-tap-highlight-color: transparent;
-            overscroll-behavior-y: none;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+            user-select: none;
         }
         
-        input, select, textarea, button { font-size: 16px !important; touch-action: manipulation; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .card-premium {
-            background: white;
-            border-radius: 1.5rem;
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(255,255,255,0.5);
+        .splash-screen {
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
         }
 
-        .input-premium {
-            background: #F9FAFB;
-            border: 1px solid #E5E7EB;
-            border-radius: 1rem;
-            transition: all 0.2s ease;
-        }
-        .input-premium:focus {
-            background: white;
-            border-color: var(--theme-color);
-            box-shadow: 0 0 0 4px var(--theme-light);
-            outline: none;
+        .splash-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
         }
 
-        .btn-touch { transition: transform 0.1s; }
-        .btn-touch:active { transform: scale(0.95); opacity: 0.9; }
+        /* Checkbox personalizado animado */
+        .custom-checkbox {
+            appearance: none;
+            background-color: #fff;
+            margin: 0;
+            font: inherit;
+            color: currentColor;
+            width: 1.5em;
+            height: 1.5em;
+            border: 2px solid #cbd5e1;
+            border-radius: 50%;
+            display: grid;
+            place-content: center;
+            transition: all 0.3s ease-in-out;
+            cursor: pointer;
+        }
 
-        .animate-enter { animation: enter 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        @keyframes enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-checkbox::before {
+            content: "";
+            width: 0.8em;
+            height: 0.8em;
+            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+            transform: scale(0);
+            background-color: white;
+            transition: 0.2s transform ease-in-out;
+        }
 
-        .screen { display: none; flex-direction: column; height: 100%; width: 100%; position: absolute; inset: 0; background: #F3F4F6; }
-        .screen.active { display: flex; }
+        .custom-checkbox:checked {
+            background-color: #22c55e; /* Green-500 */
+            border-color: #22c55e;
+            transform: scale(1.1);
+        }
 
-        :root { --theme-color: #2563EB; --theme-light: #DBEAFE; }
-        #reader video { border-radius: 1.5rem; object-fit: cover; }
+        .custom-checkbox:checked::before {
+            transform: scale(1);
+        }
+
+        /* Animación para botones */
+        .btn-active:active {
+            transform: scale(0.95);
+        }
+
+        /* Scrollbar oculto para diseño más limpio */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
     </style>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { theme: 'var(--theme-color)', 'theme-light': 'var(--theme-light)', dark: '#111827' } } } }
-    </script>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased h-screen w-screen overflow-hidden">
 
-    <!-- LOGIN -->
-    <div id="screen-login" class="screen active z-50">
-        <div class="flex-1 flex flex-col justify-center items-center p-8 relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-theme-light/50 to-transparent rounded-b-[3rem]"></div>
-            
-            <div class="relative z-10 w-full max-w-sm animate-enter">
-                <div class="bg-white p-8 rounded-[2rem] shadow-2xl shadow-blue-900/5 border border-white/50">
-                    <div class="text-center mb-8">
-                        <div class="w-20 h-20 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-blue-500/30 mb-4">
-                            <i data-lucide="box" class="text-white w-10 h-10"></i>
-                        </div>
-                        <h1 class="text-2xl font-extrabold text-gray-900">Control Dársena</h1>
-                        <p class="text-gray-400 text-sm mt-1">Acceso de Auditores</p>
-                    </div>
-
-                    <div class="space-y-4">
-                        <div class="relative">
-                            <label class="text-xs font-bold text-gray-400 ml-1 uppercase">Código Personal</label>
-                            <input type="number" id="login-code" class="w-full input-premium p-4 text-center text-2xl font-bold text-gray-800 mt-1" placeholder="• • •" inputmode="numeric">
-                        </div>
-                        
-                        <button onclick="doLogin()" id="btnLogin" class="w-full bg-gray-900 text-white font-bold py-4 rounded-xl text-lg shadow-xl shadow-gray-900/20 btn-touch flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                            Iniciar Sesión <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-
-                    <div class="mt-6 flex justify-center">
-                         <div id="dbStatus" class="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
-                            <div class="w-2 h-2 bg-gray-300 rounded-full animate-pulse" id="dbLoader"></div>
-                            <span id="dbStatusText" class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">Cargando Sistema...</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-8 text-center">
-                    <p class="text-xs text-gray-400 font-medium">Equipo Autorizado</p>
-                    <div class="flex flex-wrap justify-center gap-2 mt-2 text-[10px] text-gray-300 font-semibold">
-                        <span>Fabio</span> • <span>Javier</span> • <span>Victor</span> • <span>Brian</span> • <span>Rodrigo</span> • <span>Marcelo</span>
-                    </div>
-                </div>
-            </div>
+    <!-- PANTALLA DE BIENVENIDA -->
+    <div id="splash" class="splash-screen fixed inset-0 z-50 flex flex-col items-center justify-center bg-blue-900 text-white">
+        <i class="fas fa-chart-line text-6xl mb-4 animate-bounce"></i>
+        <h1 class="text-3xl font-bold tracking-wide">Analista de</h1>
+        <h1 class="text-3xl font-bold tracking-wide text-blue-300">Operaciones</h1>
+        <div class="mt-8 flex space-x-2">
+            <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+            <div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+            <div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
         </div>
     </div>
 
-    <!-- APP -->
-    <div id="screen-app" class="screen relative">
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div id="app" class="flex flex-col h-full max-w-md mx-auto bg-slate-50 relative shadow-2xl">
         
-        <div class="bg-white/90 backdrop-blur-md px-5 pt-safe-top pb-3 shadow-sm z-30 sticky top-0">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-theme font-bold text-lg border border-gray-200" id="user-avatar">U</div>
-                    <div>
-                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hola,</p>
-                        <h2 id="user-name-display" class="text-lg font-bold text-gray-900 leading-none">Usuario</h2>
-                    </div>
-                </div>
-                <div class="bg-theme-light text-theme px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                    <i data-lucide="wifi" class="w-3 h-3"></i> Online
-                </div>
-            </div>
-        </div>
+        <!-- CABECERA -->
+        <header class="bg-blue-900 text-white p-4 shadow-md z-10">
+            <h2 id="header-title" class="text-xl font-bold flex items-center">
+                <i class="fas fa-calendar-check mr-2"></i> Tareas de Hoy
+            </h2>
+            <p id="header-subtitle" class="text-blue-200 text-sm mt-1"></p>
+        </header>
 
-        <div id="main-content" class="flex-1 overflow-y-auto hide-scrollbar">
-            
-            <!-- HOME -->
-            <div id="view-home" class="p-5 space-y-6 pb-32 animate-enter">
-                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                    <div class="flex items-center gap-2 mb-3">
-                        <div class="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><i data-lucide="truck" class="w-4 h-4"></i></div>
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Configuración de Carga</span>
-                    </div>
-                    <div class="flex gap-3">
-                        <div class="flex-1 bg-gray-50 rounded-xl p-2 px-3 flex flex-col">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase">Dársena</label>
-                            <input type="text" id="op-darsena" class="bg-transparent font-bold text-gray-800 text-lg outline-none w-full" placeholder="--" onchange="saveOpData()">
-                        </div>
-                        <div class="flex-1 bg-gray-50 rounded-xl p-2 px-3 flex flex-col">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase">Camión</label>
-                            <input type="text" id="op-camion" class="bg-transparent font-bold text-gray-800 text-lg outline-none w-full" placeholder="----" onchange="saveOpData()">
-                        </div>
-                    </div>
-                </div>
+        <!-- ÁREA DE CONTENIDO (Scrollable) -->
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
+            <!-- El contenido se inyecta por JS -->
+        </main>
 
-                <div>
-                    <div class="flex gap-3 items-stretch h-14">
-                        <div class="relative flex-1">
-                            <div class="absolute inset-y-0 left-4 flex items-center text-gray-400 pointer-events-none"><i data-lucide="search" class="w-6 h-6"></i></div>
-                            <input type="text" id="search-input" onkeyup="handleSearch(event)" 
-                                placeholder="Buscar producto..." 
-                                class="w-full h-full bg-white rounded-2xl pl-12 pr-10 text-lg font-medium text-gray-800 shadow-sm border-none outline-none focus:ring-2 focus:ring-theme transition-all" 
-                                autocomplete="off">
-                            <button onclick="limpiarBuscador()" id="clear-search" class="absolute inset-y-0 right-3 flex items-center text-gray-300 hidden"><i data-lucide="x-circle" class="w-5 h-5"></i></button>
-                        </div>
-                        <button onclick="startScanner()" class="w-14 bg-gray-900 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-gray-900/20 btn-touch"><i data-lucide="scan-line" class="w-6 h-6"></i></button>
-                    </div>
-                    <p class="text-[10px] text-gray-400 text-center mt-2">Busca por nombre, código o escanea la barra</p>
-                </div>
-
-                <div id="db-empty-state" class="hidden py-10 text-center">
-                    <div class="inline-block p-4 bg-white rounded-full shadow-sm mb-3"><i data-lucide="database" class="w-8 h-8 text-gray-300"></i></div>
-                    <p class="text-sm text-gray-500 font-medium">Cargando productos...</p>
-                </div>
-
-                <div id="product-list" class="space-y-3"></div>
-            </div>
-
-            <!-- SETTINGS -->
-            <div id="view-settings" class="p-5 space-y-6 pb-32 hidden animate-enter">
-                <h1 class="text-2xl font-extrabold text-gray-900">Ajustes</h1>
-                
-                <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-2 ml-2">Sincronización</h3>
-                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-                        <button onclick="enviarTodoNube()" class="w-full p-4 flex items-center justify-between border-b border-gray-100 btn-touch hover:bg-gray-50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center"><i data-lucide="cloud-upload" class="w-5 h-5"></i></div>
-                                <div class="text-left">
-                                    <p class="font-bold text-gray-800">Enviar Reporte</p>
-                                    <p class="text-xs text-gray-500">Sube los datos a Google Sheets</p>
-                                </div>
-                            </div>
-                            <i data-lucide="chevron-right" class="text-gray-300 w-5 h-5"></i>
-                        </button>
-                        <div class="p-3 bg-blue-50 flex items-center justify-between text-xs text-blue-700 font-medium">
-                            <span>Estado Script:</span>
-                            <span class="flex items-center gap-1" id="cloud-status-container">
-                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <span id="cloud-status">Conectado Auto</span>
-                            </span>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h3 class="text-xs font-bold text-gray-400 uppercase mb-2 ml-2">Datos Locales</h3>
-                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
-                        <button onclick="verReporte()" class="w-full p-4 flex items-center justify-between border-b border-gray-100 btn-touch hover:bg-gray-50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center"><i data-lucide="list" class="w-5 h-5"></i></div>
-                                <span class="font-bold text-gray-800">Ver Registros del Día</span>
-                            </div>
-                            <span class="bg-gray-100 text-gray-600 text-xs font-bold px-2.5 py-1 rounded-lg" id="badge-count-settings">0</span>
-                        </button>
-                        <button onclick="descargarExcel()" class="w-full p-4 flex items-center justify-between border-b border-gray-100 btn-touch hover:bg-gray-50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center"><i data-lucide="file-spreadsheet" class="w-5 h-5"></i></div>
-                                <span class="font-bold text-gray-800">Descargar CSV Local</span>
-                            </div>
-                            <i data-lucide="download" class="text-gray-300 w-4 h-4"></i>
-                        </button>
-                        <button onclick="abrirGestionDB()" class="w-full p-4 flex items-center justify-between btn-touch hover:bg-gray-50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-gray-100 text-gray-600 flex items-center justify-center"><i data-lucide="database" class="w-5 h-5"></i></div>
-                                <div class="text-left">
-                                    <p class="font-bold text-gray-800">Base de Datos Productos</p>
-                                    <p class="text-xs text-gray-500" id="db-count-label">0 items cargados</p>
-                                </div>
-                            </div>
-                            <i data-lucide="refresh-cw" class="text-gray-300 w-4 h-4"></i>
-                        </button>
-                    </div>
-                </section>
-                <button onclick="cerrarSesion()" class="w-full py-4 text-red-500 font-bold text-sm bg-white rounded-2xl shadow-sm btn-touch border border-red-50">Cerrar Sesión Actual</button>
-                <div class="text-center pt-4 pb-10"><p class="text-[10px] text-gray-400 font-mono">APP CONTROL DÁRSENA v9.3</p></div>
-            </div>
-        </div>
-
-        <!-- BOTTOM NAV -->
-        <div class="fixed bottom-6 left-4 right-4 h-16 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 flex items-center justify-around z-40 max-w-md mx-auto">
-            <button onclick="switchTab('home')" id="tab-home" class="flex flex-col items-center justify-center w-16 h-full text-theme transition-all btn-touch relative">
-                <i data-lucide="scan-barcode" class="w-6 h-6 mb-1"></i><span class="text-[10px] font-bold">Registrar</span>
-                <div class="absolute bottom-1 w-1 h-1 bg-theme rounded-full"></div>
+        <!-- BARRA DE NAVEGACIÓN INFERIOR -->
+        <nav class="absolute bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-3 pb-6 sm:pb-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+            <button onclick="switchTab('hoy')" id="tab-hoy" class="btn-active flex flex-col items-center p-2 text-blue-600 transition-colors w-1/3">
+                <i class="fas fa-list-check text-xl mb-1"></i>
+                <span class="text-xs font-semibold">Hoy</span>
             </button>
-            <div class="w-px h-8 bg-gray-100"></div>
-            <button onclick="switchTab('settings')" id="tab-settings" class="flex flex-col items-center justify-center w-16 h-full text-gray-400 transition-all btn-touch relative">
-                <i data-lucide="settings-2" class="w-6 h-6 mb-1"></i><span class="text-[10px] font-bold">Menú</span>
-                <div id="badge-nav" class="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white hidden"></div>
+            <button onclick="switchTab('historial')" id="tab-historial" class="btn-active flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors w-1/3">
+                <i class="fas fa-calendar-alt text-xl mb-1"></i>
+                <span class="text-xs font-semibold">Historial</span>
             </button>
-        </div>
+            <button onclick="switchTab('configuracion')" id="tab-configuracion" class="btn-active flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors w-1/3">
+                <i class="fas fa-cog text-xl mb-1"></i>
+                <span class="text-xs font-semibold">Configurar</span>
+            </button>
+        </nav>
+    </div>
 
-        <!-- MODALS -->
-        <div id="modal-registro" class="fixed inset-0 z-50 hidden">
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300" onclick="cerrarModalRegistro()"></div>
-            <div class="absolute bottom-0 w-full bg-white rounded-t-[2rem] p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.2)] modal-enter max-w-md left-0 right-0 mx-auto pb-10">
-                <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-8"></div>
-                <div class="flex justify-between items-start mb-8">
-                    <div class="flex-1 pr-4">
-                        <div class="flex items-center gap-2 mb-2">
-                            <span class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono" id="modal-code">CODE</span>
-                            <span class="text-[10px] font-bold bg-blue-50 text-blue-600 px-2 py-1 rounded-md uppercase" id="modal-prov">PROV</span>
-                        </div>
-                        <h3 class="text-xl font-black text-gray-900 leading-snug" id="modal-desc">Nombre del Producto</h3>
-                    </div>
-                    <button onclick="cerrarModalRegistro()" class="bg-gray-100 p-2.5 rounded-full text-gray-400 hover:bg-gray-200 hover:text-gray-600 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
-                </div>
-                <div class="flex items-center gap-4 mb-8">
-                    <button onclick="updateQty(-1)" class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500 btn-touch"><i data-lucide="minus" class="w-6 h-6"></i></button>
-                    <div class="flex-1 h-20 bg-gray-50 rounded-3xl border-2 border-transparent focus-within:border-theme focus-within:bg-white transition-all flex items-center justify-center relative">
-                        <input type="number" id="input-qty" class="bg-transparent w-full h-full text-center text-4xl font-black text-gray-900 outline-none" placeholder="0" inputmode="numeric">
-                        <span class="absolute right-4 text-xs font-bold text-gray-400 uppercase">Unid.</span>
-                    </div>
-                    <button onclick="updateQty(1)" class="w-16 h-16 bg-gray-900 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-gray-900/20 btn-touch"><i data-lucide="plus" class="w-6 h-6"></i></button>
-                </div>
-                <button onclick="guardar()" class="w-full bg-theme text-white font-bold py-5 rounded-2xl text-lg shadow-xl shadow-theme/30 btn-touch flex justify-center items-center gap-2"><span>Confirmar Sobrante</span><i data-lucide="check-circle" class="w-6 h-6"></i></button>
-            </div>
-        </div>
-
-        <div id="modal-scanner" class="fixed inset-0 z-50 hidden bg-black flex flex-col">
-            <div class="flex justify-between items-center p-6 bg-black/80 text-white z-10 absolute top-0 left-0 w-full">
-                <h3 class="font-bold text-lg">Escaneando...</h3>
-                <button onclick="stopScanner()" class="bg-white/20 p-2 rounded-full backdrop-blur-md"><i data-lucide="x" class="w-6 h-6"></i></button>
-            </div>
-            <div id="reader" class="flex-1 w-full h-full bg-black"></div>
-            <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black to-transparent text-center pb-20">
-                <p class="text-white/80 text-sm font-medium bg-black/50 inline-block px-4 py-2 rounded-full backdrop-blur-md">Apunta la cámara al código de barras</p>
-            </div>
-        </div>
-
-        <div id="modal-reportes" class="fixed inset-0 z-50 hidden bg-[#F5F5F7]">
-            <div class="bg-white pt-safe-top pb-4 px-5 shadow-sm sticky top-0 z-10 flex justify-between items-center">
-                <button onclick="cerrarReportes()" class="flex items-center text-gray-500 font-bold gap-1 p-2 -ml-2 hover:bg-gray-50 rounded-lg transition"><i data-lucide="arrow-left" class="w-5 h-5"></i> Volver</button>
-                <h2 class="font-black text-lg text-gray-900">Registros de Hoy</h2>
-                <div class="w-20"></div>
-            </div>
-            <div id="lista-registros-container" class="p-4 space-y-3 overflow-y-auto h-[calc(100%-80px)] pb-32"></div>
-        </div>
-
-        <div id="modal-db" class="fixed inset-0 z-50 hidden flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm" onclick="if(event.target===this) cerrarModalDB()">
-            <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl transform transition-all scale-100">
-                <div class="text-center mb-6">
-                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3"><i data-lucide="database" class="text-gray-600"></i></div>
-                    <h3 class="text-lg font-bold text-gray-900">Conectar Excel</h3>
-                    <p class="text-xs text-gray-500 mt-1">Pega el enlace público CSV de Google Sheets</p>
-                </div>
-                <input type="text" id="db-url-input" placeholder="https://docs.google.com/..." class="w-full input-premium p-4 text-sm mb-4">
-                <div class="flex gap-3">
-                    <button onclick="borrarBaseDatos()" class="flex-1 py-3 text-red-500 font-bold bg-red-50 rounded-xl text-sm">Borrar</button>
-                    <button onclick="guardarConfigDB()" class="flex-[2] py-3 bg-gray-900 text-white font-bold rounded-xl text-sm shadow-lg">Conectar</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="modal-cloud" class="fixed inset-0 z-50 hidden flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm" onclick="if(event.target===this) cerrarModalCloud()">
-            <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
-                <h3 class="text-lg font-bold mb-2 text-gray-900">Script de Carga</h3>
-                <p class="text-xs text-gray-500 mb-4">URL del Web App de Google Apps Script</p>
-                <input type="text" id="cloud-url-input" placeholder="https://script.google.com/..." class="w-full input-premium p-4 text-sm mb-4">
-                <button onclick="guardarConfigCloud()" class="w-full py-3 bg-theme text-white font-bold rounded-xl text-sm shadow-lg">Guardar Configuración</button>
-            </div>
-        </div>
-
+    <!-- NOTIFICACIÓN TIPO TOAST INTEGRADA -->
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-800 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center">
+        <i id="toast-icon" class="fas fa-info-circle mr-2"></i>
+        <span id="toast-msg">Mensaje</span>
     </div>
 
     <script>
-        // CONFIG AUTOMATICA
-        const DEFAULT_EXCEL_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT7gUS0hLg-DTKmCeLTT9rniA7SLjJAf7kT6Jf76ICN89Skpq5By1V4GQ15YtBugUWE5M1xYJyvZd82/pub?output=csv";
-        const DEFAULT_CLOUD_URL = "https://script.google.com/macros/s/AKfycbyRgvVkA2GEEJi3iMXtIF7gEWOSDofajRInTzRWvA9597qH3EdRWGRjwAXcXve761PE/exec";
+        // --- 1. DATOS Y CONFIGURACIÓN INICIAL ---
+        const TAREAS_POR_DEFECTO = [
+            { id: 't1', text: 'Seguimiento diario de KPIs operativos: Efectividad de entregas (informe anulados)', type: 'default', notify: false, time: '08:00' },
+            { id: 't2', text: 'Reportes diarios (ventas programadas y Pareto a Fabio para gerentes)', type: 'default', notify: false, time: '09:00' },
+            { id: 't3', text: 'Actualización del status de entregas diferidas por correo a todas las áreas', type: 'default', notify: false, time: '10:00' },
+            { id: 't4', text: 'Soporte a logística y trafico en decisiones operativas', type: 'default', notify: false, time: '11:00' },
+            { id: 't5', text: 'Soporte ruteo en manejo QM y análisis ventas a programar (ambos ERP)', type: 'default', notify: false, time: '14:00' },
+            { id: 't6', text: 'Seguimiento en tiempo real de entregas con reportes al coordinador', type: 'default', notify: false, time: '15:00' },
+            { id: 't7', text: 'Implementación de modulo de control de asistencia con coordinador', type: 'default', notify: false, time: '16:00' },
+            { id: 't8', text: 'Clientes no visitados por camion', type: 'default', notify: false, time: '17:00' }
+        ];
 
-        const USERS = { 1: "Fabio Vera", 2: "Javier Insfran", 3: "Victor Varga", 4: "Brian Quintana", 5: "Rodrigo Cabrera", 6: "Marcelo Diaz" };
-        let currentUser = null, productsDB = [], registers = [], selectedProd = null;
-        let opDarsena = "", opCamion = "";
-        let html5QrcodeScanner = null;
+        // Cargar datos de localStorage o usar defaults
+        let tasks = JSON.parse(localStorage.getItem('ops_tasks')) || TAREAS_POR_DEFECTO;
+        // Historial formato: { 'YYYY-MM-DD': { 't1': '08:30', 't2': '09:15' } }
+        let history = JSON.parse(localStorage.getItem('ops_history')) || {};
+        let notificationsSent = JSON.parse(localStorage.getItem('ops_notified')) || {};
 
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons(); 
-            loadState(); 
-            loadOpData();
-            const savedUser = localStorage.getItem('darsena_user');
-            if(savedUser) loginUser(JSON.parse(savedUser));
-        });
+        let currentTab = 'hoy';
+        let viewDate = getTodayDateString();
 
-        function saveOpData() { 
-            opDarsena = document.getElementById('op-darsena').value; 
-            opCamion = document.getElementById('op-camion').value; 
-            localStorage.setItem('darsena_op_darsena', opDarsena); 
-            localStorage.setItem('darsena_op_camion', opCamion); 
-        }
-        
-        function loadOpData() { 
-            opDarsena = localStorage.getItem('darsena_op_darsena') || ""; 
-            opCamion = localStorage.getItem('darsena_op_camion') || ""; 
-            document.getElementById('op-darsena').value = opDarsena; 
-            document.getElementById('op-camion').value = opCamion; 
+        // --- 2. FUNCIONES DE UTILIDAD ---
+        function getTodayDateString() {
+            const today = new Date();
+            // Formato YYYY-MM-DD ajustado a la zona horaria local
+            return today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
         }
 
-        function startScanner() {
-            document.getElementById('modal-scanner').classList.remove('hidden');
-            const config = { fps: 10, qrbox: { width: 260, height: 200 }, aspectRatio: 1.0 };
-            html5QrcodeScanner = new Html5Qrcode("reader");
-            html5QrcodeScanner.start({ facingMode: "environment" }, config,
-                (decodedText) => { stopScanner(); handleScannedCode(decodedText); },
-                (errorMessage) => { }
-            ).catch(err => {
-                console.error(err);
-                Swal.fire({icon:'error', title:'Error Cámara', text:'Verifica permisos', confirmButtonColor:'#111827'});
-                document.getElementById('modal-scanner').classList.add('hidden');
-            });
+        function getCurrentTime() {
+            const now = new Date();
+            return String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
         }
 
-        function stopScanner() {
-            if(html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); document.getElementById('modal-scanner').classList.add('hidden'); }).catch(console.error);
-            } else { document.getElementById('modal-scanner').classList.add('hidden'); }
+        function formatDateDisplay(dateString) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const date = new Date(dateString + 'T00:00:00'); // Evitar problemas de zona horaria
+            return date.toLocaleDateString('es-ES', options);
         }
 
-        function handleScannedCode(code) {
-            const match = productsDB.find(p => p.b == code || p.c == code);
-            if(match) { 
-                openRegisterModal(match); 
-                if(navigator.vibrate) navigator.vibrate(50);
+        function saveData() {
+            localStorage.setItem('ops_tasks', JSON.stringify(tasks));
+            localStorage.setItem('ops_history', JSON.stringify(history));
+            localStorage.setItem('ops_notified', JSON.stringify(notificationsSent));
+        }
+
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-msg').innerText = msg;
+            
+            if(type === 'success') {
+                icon.className = 'fas fa-check-circle mr-2 text-green-400';
+            } else if (type === 'warning') {
+                icon.className = 'fas fa-exclamation-triangle mr-2 text-amber-400';
+            } else {
+                icon.className = 'fas fa-info-circle mr-2 text-blue-400';
             }
-            else { Swal.fire({ icon: 'warning', title: 'No encontrado', text: `Código: ${code} no existe`, confirmButtonColor:'#111827' }); }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+            }, 3000);
         }
 
-        function handleSearch(e) {
-            const query = e.target.value.trim();
-            const clearBtn = document.getElementById('clear-search');
-            if(query.length > 0) clearBtn.classList.remove('hidden'); else clearBtn.classList.add('hidden');
+        // --- 3. LOGICA DE VISTAS (TABS) ---
+        function switchTab(tab) {
+            currentTab = tab;
             
-            const exactMatch = productsDB.find(p => p.c === query || p.b === query);
-            if (exactMatch && e.key === 'Enter') { openRegisterModal(exactMatch); document.getElementById('search-input').blur(); return; }
-            
-            renderProductList(query);
-        }
-        function limpiarBuscador() { document.getElementById('search-input').value = ""; document.getElementById('clear-search').classList.add('hidden'); renderProductList(""); document.getElementById('search-input').focus(); }
+            // Actualizar UI de botones
+            ['hoy', 'historial', 'configuracion'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if (t === tab) {
+                    btn.classList.remove('text-slate-400');
+                    btn.classList.add('text-blue-600');
+                } else {
+                    btn.classList.remove('text-blue-600');
+                    btn.classList.add('text-slate-400');
+                }
+            });
 
-        function doLogin() { const c = parseInt(document.getElementById('login-code').value); if(USERS[c]) loginUser({id:c, name:USERS[c]}); else Swal.fire({toast:true, position:'top', icon:'error', title:'Código incorrecto', showConfirmButton:false, timer:1500}); }
-        
-        function loginUser(u) { 
-            currentUser=u; localStorage.setItem('darsena_user',JSON.stringify(u)); 
-            document.getElementById('user-name-display').innerText=u.name.split(' ')[0]; 
-            document.getElementById('user-avatar').innerText=u.name.charAt(0); 
-            document.getElementById('screen-login').classList.remove('active'); 
-            setTimeout(()=>{
-                document.getElementById('screen-app').classList.remove('hidden');
-                document.getElementById('screen-app').classList.add('active');
-            },300); 
-            renderProductList(); 
-        }
-        
-        function cerrarSesion() { localStorage.removeItem('darsena_user'); window.location.reload(); }
-
-        function switchTab(t) { 
-            ['home','settings'].forEach(v=>{ 
-                const el=document.getElementById(`view-${v}`), b=document.getElementById(`tab-${v}`); 
-                const activeIndicator = b.querySelector('.bg-theme'); 
-                if(v===t){ el.classList.remove('hidden'); b.classList.replace('text-gray-400','text-theme'); if(activeIndicator) activeIndicator.classList.remove('hidden'); } 
-                else { el.classList.add('hidden'); b.classList.replace('text-theme','text-gray-400'); if(activeIndicator) activeIndicator.classList.add('hidden'); } 
-            }); 
+            renderContent();
         }
 
-        function irAConfiguracion() { switchTab('settings'); setTimeout(()=>abrirGestionDB(),500); }
+        function renderContent() {
+            const main = document.getElementById('main-content');
+            const title = document.getElementById('header-title');
+            const subtitle = document.getElementById('header-subtitle');
+            main.innerHTML = '';
 
-        function loadState() {
-            const r=localStorage.getItem('darsena_registros'); if(r) registers=JSON.parse(r); updateBadge();
-            
-            let u = localStorage.getItem('darsena_db_url'); 
-            if(!u && DEFAULT_EXCEL_URL) { u = DEFAULT_EXCEL_URL; localStorage.setItem('darsena_db_url', u); }
-            
-            const d=localStorage.getItem('darsena_db');
-            if(u) { fetchGoogleSheet(u); } else if(d) { productsDB=JSON.parse(d); renderProductList(); statusReady(); } else { renderProductList(); statusOffline("Sin conexión"); }
-            
-            let cUrl = localStorage.getItem('darsena_cloud_url'); 
-            if (!cUrl && DEFAULT_CLOUD_URL) { cUrl = DEFAULT_CLOUD_URL; localStorage.setItem('darsena_cloud_url', cUrl); }
-            
-            const cloudStatusEl = document.getElementById('cloud-status');
-            if(cUrl && cloudStatusEl) cloudStatusEl.innerText = "Conectado Automático";
-        }
+            const todayStr = getTodayDateString();
 
-        function statusLoading(m) { 
-            const dbLoader = document.getElementById('dbLoader');
-            const dbStatusText = document.getElementById('dbStatusText');
-            const btnLogin = document.getElementById('btnLogin');
-            
-            if(dbLoader) dbLoader.style.display='block'; 
-            if(dbStatusText) dbStatusText.innerText=m; 
-            if(btnLogin) btnLogin.disabled=true; 
-        }
-        function statusReady() { 
-            const dbLoader = document.getElementById('dbLoader');
-            const dbStatusText = document.getElementById('dbStatusText');
-            const dbStatus = document.getElementById('dbStatus');
-            const btnLogin = document.getElementById('btnLogin');
+            if (currentTab === 'hoy') {
+                title.innerHTML = '<i class="fas fa-calendar-check mr-2"></i> Tareas de Hoy';
+                subtitle.innerText = formatDateDisplay(todayStr);
+                
+                if (!history[todayStr]) history[todayStr] = {};
 
-            if(dbLoader) dbLoader.style.display='none'; 
-            if(dbStatusText) dbStatusText.innerText="SISTEMA ONLINE"; 
-            if(dbStatus) {
-                dbStatus.classList.replace('text-gray-400','text-green-600'); 
-                dbStatus.classList.replace('bg-gray-50','bg-green-50'); 
+                let completedCount = 0;
+
+                tasks.forEach(task => {
+                    const isCompleted = history[todayStr].hasOwnProperty(task.id);
+                    const timeCompleted = isCompleted ? history[todayStr][task.id] : null;
+                    if (isCompleted) completedCount++;
+
+                    main.appendChild(createTaskElement(task, isCompleted, timeCompleted, true, todayStr));
+                });
+
+                // Barra de progreso
+                const progressDiv = document.createElement('div');
+                const progressPct = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
+                progressDiv.innerHTML = `
+                    <div class="mb-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-medium text-slate-700">Progreso diario</span>
+                            <span class="text-sm font-bold text-blue-600">${progressPct}%</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2 text-center">${completedCount} de ${tasks.length} tareas completadas</p>
+                    </div>
+                `;
+                main.insertBefore(progressDiv, main.firstChild);
+
+            } else if (currentTab === 'historial') {
+                title.innerHTML = '<i class="fas fa-history mr-2"></i> Historial';
+                subtitle.innerText = 'Revisa días anteriores';
+
+                main.innerHTML = `
+                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-4 sticky top-0 z-10">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Seleccionar Fecha:</label>
+                        <input type="date" id="history-date" value="${viewDate}" max="${todayStr}" 
+                               class="w-full p-2 border border-slate-300 rounded-lg text-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                    </div>
+                    <div id="history-list" class="space-y-3"></div>
+                `;
+
+                document.getElementById('history-date').addEventListener('change', (e) => {
+                    viewDate = e.target.value;
+                    renderHistoryList();
+                });
+
+                renderHistoryList();
+
+            } else if (currentTab === 'configuracion') {
+                title.innerHTML = '<i class="fas fa-sliders-h mr-2"></i> Configuración';
+                subtitle.innerText = 'Gestiona tus tareas y alertas';
+
+                // Añadir nueva tarea
+                const addDiv = document.createElement('div');
+                addDiv.className = 'bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6';
+                addDiv.innerHTML = `
+                    <h3 class="font-semibold text-slate-800 mb-3"><i class="fas fa-plus-circle text-blue-500 mr-2"></i>Nueva Tarea</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-task-text" placeholder="Ej. Revisar correos gerencia..." class="flex-1 p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button onclick="addTask()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium btn-active hover:bg-blue-700"><i class="fas fa-plus"></i></button>
+                    </div>
+                `;
+                main.appendChild(addDiv);
+
+                // Lista de configuración de tareas
+                const listDiv = document.createElement('div');
+                listDiv.className = 'space-y-4';
+                
+                tasks.forEach(task => {
+                    const taskCard = document.createElement('div');
+                    taskCard.className = 'bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3';
+                    taskCard.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <p class="text-sm font-medium text-slate-800 flex-1 pr-2">${task.text}</p>
+                            ${task.type === 'custom' ? `<button onclick="deleteTask('${task.id}')" class="text-red-400 hover:text-red-600 p-1 btn-active"><i class="fas fa-trash"></i></button>` : ''}
+                        </div>
+                        <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-100">
+                            <div class="flex items-center">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                  <input type="checkbox" class="sr-only peer" ${task.notify ? 'checked' : ''} onchange="toggleNotify('${task.id}', this.checked)">
+                                  <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                                  <span class="ml-2 text-xs font-medium text-slate-600"><i class="fas fa-bell ${task.notify ? 'text-blue-500' : 'text-slate-400'} mr-1"></i>Aviso</span>
+                                </label>
+                            </div>
+                            <input type="time" value="${task.time || '09:00'}" onchange="updateTaskTime('${task.id}', this.value)" class="p-1 border border-slate-300 rounded text-xs text-slate-700 focus:ring-1 focus:ring-blue-500 outline-none">
+                        </div>
+                    `;
+                    listDiv.appendChild(taskCard);
+                });
+                main.appendChild(listDiv);
+
+                // Botón permiso notificaciones
+                const notifPermDiv = document.createElement('div');
+                notifPermDiv.className = 'mt-6 text-center';
+                notifPermDiv.innerHTML = `
+                    <button onclick="requestNotificationPermission()" class="text-xs text-blue-600 underline">
+                        Probar permisos de notificación del celular
+                    </button>
+                `;
+                main.appendChild(notifPermDiv);
             }
-            if(btnLogin) btnLogin.disabled=false; 
-        }
-        function statusOffline(m) { 
-            const dbLoader = document.getElementById('dbLoader');
-            const dbStatusText = document.getElementById('dbStatusText');
-            const dbStatus = document.getElementById('dbStatus');
-            const btnLogin = document.getElementById('btnLogin');
-
-            if(dbLoader) dbLoader.style.display='none'; 
-            if(dbStatusText) dbStatusText.innerText=m; 
-            if(dbStatus) dbStatus.classList.replace('text-gray-400','text-red-500'); 
-            if(btnLogin) btnLogin.disabled=false; 
         }
 
-        function fetchGoogleSheet(url) {
-            statusLoading("Sincronizando...");
-            Papa.parse(url, { download:true, header:true, skipEmptyLines:true,
-                complete: function(res) {
-                    if(res.data && res.data.length>0) {
-                        productsDB = res.data.map(row => {
-                            const k = Object.keys(row).reduce((acc, key) => { acc[key.toUpperCase().trim()] = row[key]; return acc; }, {});
-                            return { c: k['COD_MERCA']||k['CODIGO']||'', b: k['COD_BARRA']||k['BARRA']||'', d: k['XDESC']||k['DESCRIPCION']||'', p: k['XDESC_DIVI']||k['PROVEEDOR']||'VARIOS', v: 0 };
-                        }).filter(p => p.c !== '');
-                        localStorage.setItem('darsena_db', JSON.stringify(productsDB));
-                        renderProductList(); statusReady();
-                    } else statusOffline("BD Vacía");
-                },
-                error: function(e) { console.error(e); statusOffline("Error Red"); }
+        function renderHistoryList() {
+            const container = document.getElementById('history-list');
+            container.innerHTML = '';
+            
+            const dayHistory = history[viewDate];
+
+            if (!dayHistory || Object.keys(dayHistory).length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-400">
+                        <i class="fas fa-folder-open text-4xl mb-3 opacity-50"></i>
+                        <p>No hay registros para este día.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            tasks.forEach(task => {
+                const isCompleted = dayHistory.hasOwnProperty(task.id);
+                if (isCompleted) {
+                    const timeCompleted = dayHistory[task.id];
+                    container.appendChild(createTaskElement(task, true, timeCompleted, false, viewDate));
+                } else {
+                    container.appendChild(createTaskElement(task, false, null, false, viewDate));
+                }
             });
         }
 
-        function renderProductList(filter = "") {
-            const c = document.getElementById('product-list'), e = document.getElementById('db-empty-state');
-            const countLabel = document.getElementById('db-count-label');
+        function createTaskElement(task, isCompleted, timeCompleted, isInteractive, dateKey) {
+            const div = document.createElement('div');
+            // Cambiar estilos si está completado
+            const bgClass = isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200';
+            const textClass = isCompleted ? 'text-slate-500 line-through' : 'text-slate-800';
             
-            if(c) c.innerHTML = ""; 
-            if(productsDB && countLabel) countLabel.innerText = `${productsDB.length} productos`;
+            div.className = `p-4 rounded-xl border shadow-sm transition-all duration-300 flex items-center justify-between gap-3 ${bgClass}`;
+            
+            let html = `<div class="flex-1">
+                            <p class="text-sm font-medium ${textClass} transition-colors duration-300">${task.text}</p>
+                            ${isCompleted && timeCompleted ? `<p class="text-xs text-green-600 mt-1 font-semibold"><i class="fas fa-check-double mr-1"></i>Realizado a las ${timeCompleted}</p>` : `<p class="text-xs text-amber-500 mt-1"><i class="fas fa-clock mr-1"></i>Pendiente</p>`}
+                        </div>`;
 
-            if(!productsDB || productsDB.length===0) { if(e) e.classList.remove('hidden'); return; } else { if(e) e.classList.add('hidden'); }
-            
-            let cnt=0; const max=50, q=filter.toLowerCase();
-            const res = productsDB.filter(p => { if(cnt>=max && q==="") return false; const m = p.d.toLowerCase().includes(q) || p.c.toLowerCase().includes(q) || p.b.includes(q); if(m) cnt++; return m; });
-            
-            if(res.length===0 && c) { c.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm font-medium">No se encontraron productos</div>`; return; }
-            
-            res.forEach(p => {
-                const el = document.createElement('div');
-                el.className = "card-premium p-4 flex justify-between items-center active:scale-[0.99] transition-transform cursor-pointer animate-enter mb-3";
-                el.onclick = () => openRegisterModal(p);
-                el.innerHTML = `<div class="flex-1 pr-3"><div class="flex gap-2 mb-1"><span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded-md">${p.c}</span><span class="bg-blue-50 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded-md">${p.p}</span></div><h4 class="font-bold text-sm text-gray-900 leading-snug">${p.d}</h4>${p.b?`<p class="text-[10px] text-gray-400 mt-1 font-mono">${p.b}</p>`:''}</div><div class="w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center text-white shadow-lg shadow-gray-900/20"><i data-lucide="plus" class="w-5 h-5"></i></div>`;
-                if(c) c.appendChild(el);
+            if (isInteractive) {
+                html += `<div>
+                            <input type="checkbox" class="custom-checkbox btn-active" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus('${task.id}', '${dateKey}', this.checked)">
+                         </div>`;
+            } else {
+                // Solo mostrar icono en historial
+                html += `<div>
+                            ${isCompleted ? '<i class="fas fa-check-circle text-2xl text-green-500"></i>' : '<i class="fas fa-circle text-2xl text-slate-200"></i>'}
+                         </div>`;
+            }
+
+            div.innerHTML = html;
+            return div;
+        }
+
+        // --- 4. ACCIONES DE TAREAS ---
+        function toggleTaskStatus(taskId, dateKey, isChecked) {
+            if (!history[dateKey]) history[dateKey] = {};
+
+            if (isChecked) {
+                history[dateKey][taskId] = getCurrentTime();
+                showToast('¡Tarea marcada como hecha!');
+            } else {
+                delete history[dateKey][taskId];
+            }
+            saveData();
+            // Re-renderizar después de una pequeña pausa para ver la animación
+            setTimeout(() => {
+                if(currentTab === 'hoy') renderContent();
+            }, 300);
+        }
+
+        function addTask() {
+            const input = document.getElementById('new-task-text');
+            const text = input.value.trim();
+            if (text) {
+                const newTask = {
+                    id: 'custom_' + Date.now(),
+                    text: text,
+                    type: 'custom',
+                    notify: false,
+                    time: '09:00'
+                };
+                tasks.push(newTask);
+                saveData();
+                input.value = '';
+                showToast('Nueva tarea agregada');
+                renderContent();
+            } else {
+                showToast('Escribe algo primero', 'warning');
+            }
+        }
+
+        function deleteTask(taskId) {
+            if(confirm('¿Eliminar esta tarea de tu lista diaria? (No borrará el historial pasado)')) {
+                tasks = tasks.filter(t => t.id !== taskId);
+                saveData();
+                renderContent();
+            }
+        }
+
+        function toggleNotify(taskId, isChecked) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.notify = isChecked;
+                saveData();
+                if (isChecked) {
+                    requestNotificationPermission();
+                    showToast(`Aviso activado para las ${task.time}`);
+                }
+            }
+        }
+
+        function updateTaskTime(taskId, newTime) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task) {
+                task.time = newTime;
+                saveData();
+                if(task.notify) showToast(`Hora actualizada a las ${newTime}`);
+            }
+        }
+
+        // --- 5. SISTEMA DE NOTIFICACIONES ---
+        function requestNotificationPermission() {
+            if (!("Notification" in window)) {
+                showToast("Tu navegador no soporta notificaciones", "warning");
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(function (permission) {
+                    if (permission === "granted") {
+                        showToast("Notificaciones habilitadas correctamente");
+                    }
+                });
+            }
+        }
+
+        function sendNotification(title, body) {
+            if ("Notification" in window && Notification.permission === "granted") {
+                new Notification(title, {
+                    body: body,
+                    icon: "https://cdn-icons-png.flaticon.com/512/2645/2645879.png" // Icono genérico checklist
+                });
+                
+                // Vibración en dispositivos móviles (Samsung A7)
+                if ("vibrate" in navigator) {
+                    navigator.vibrate([200, 100, 200]);
+                }
+            } else {
+                // Fallback si no hay permisos nativos
+                showToast(`🔔 ${title}: ${body}`);
+                if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
+            }
+        }
+
+        function checkNotifications() {
+            const todayStr = getTodayDateString();
+            const currentTime = getCurrentTime(); // "HH:MM"
+
+            // Limpiar historial de notificaciones si es un nuevo día
+            const lastNotifiedDay = localStorage.getItem('ops_last_notified_day');
+            if(lastNotifiedDay !== todayStr) {
+                notificationsSent = {};
+                localStorage.setItem('ops_last_notified_day', todayStr);
+                saveData();
+            }
+
+            tasks.forEach(task => {
+                if (task.notify && task.time === currentTime) {
+                    const notifyKey = `${todayStr}_${task.id}`;
+                    // Verificar si ya fue completada hoy o si ya se envió notificación
+                    const isCompleted = history[todayStr] && history[todayStr].hasOwnProperty(task.id);
+                    
+                    if (!isCompleted && !notificationsSent[notifyKey]) {
+                        sendNotification("Recordatorio de Tarea", task.text);
+                        notificationsSent[notifyKey] = true;
+                        saveData();
+                    }
+                }
             });
-            lucide.createIcons();
-        }
-
-        function openRegisterModal(p) {
-            selectedProd = p;
-            document.getElementById('modal-code').innerText = p.c; document.getElementById('modal-desc').innerText = p.d; document.getElementById('modal-prov').innerText = p.p;
-            document.getElementById('input-qty').value = "";
-            document.getElementById('modal-registro').classList.remove('hidden');
-            setTimeout(() => document.getElementById('input-qty').focus(), 100);
-        }
-        function cerrarModalRegistro() { document.getElementById('modal-registro').classList.add('hidden'); selectedProd = null; }
-        
-        function updateQty(d) { 
-            const i=document.getElementById('input-qty'); 
-            let v=parseInt(i.value)||0; 
-            v = v + d; 
-            i.value = v; 
-        }
-        
-        function guardar() {
-            const q = parseInt(document.getElementById('input-qty').value);
-            if(isNaN(q)) { const i=document.getElementById('input-qty'); i.parentElement.classList.add('ring-2','ring-red-500'); setTimeout(()=>i.parentElement.classList.remove('ring-2','ring-red-500'),500); return; }
-            const obsFixed = "Sobrante de mercaderia"; 
-            registers.unshift({ id:Date.now(), fecha:new Date().toLocaleDateString(), hora:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), auditor:currentUser.name, code:selectedProd.c, desc:selectedProd.d, prov:selectedProd.p, qty:q, obs:obsFixed, darsena:opDarsena, camion:opCamion });
-            localStorage.setItem('darsena_registros', JSON.stringify(registers));
-            cerrarModalRegistro(); updateBadge(); 
-            Swal.fire({icon:'success', title:'Guardado', showConfirmButton:false, timer:800, position:'center', width:'200px'});
-        }
-
-        function verReporte() {
-            document.getElementById('modal-reportes').classList.remove('hidden');
-            const l = document.getElementById('lista-registros-container'); l.innerHTML = "";
-            if(registers.length===0) { l.innerHTML="<div class='text-center py-20 text-gray-400'><i data-lucide='clipboard-x' class='w-12 h-12 mx-auto mb-2 opacity-50'></i><p>No hay registros hoy</p></div>"; lucide.createIcons(); return; }
             
-            registers.forEach(r => {
-                const i = document.createElement('div');
-                i.className = "bg-white p-5 rounded-2xl shadow-sm border border-gray-100 relative mb-3";
-                i.innerHTML = `<div class="flex justify-between items-start pr-14"><div><div class="flex items-center gap-2 mb-1"><span class="text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> ${r.hora}</span><span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">D:${r.darsena}</span></div><h4 class="font-bold text-gray-900 text-sm leading-tight">${r.desc}</h4><p class="text-xs text-gray-400 mt-1 font-mono">${r.code}</p></div><div class="text-right flex flex-col items-end justify-center"><span class="text-2xl font-black text-gray-900 tracking-tight">${r.qty>0?'+':''}${r.qty}</span><span class="text-[9px] font-bold text-gray-400 uppercase">UNID</span></div></div><button onclick="borrarRegistro(${r.id})" class="absolute top-1/2 -translate-y-1/2 right-4 w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"><i data-lucide="trash-2" class="w-5 h-5"></i></button>`;
-                l.appendChild(i);
-            });
-            lucide.createIcons();
+            // Si el día cambió estando la app abierta, re-renderizar la pestaña hoy
+            if(currentTab === 'hoy' && viewDate !== todayStr && new Date().getHours() === 0 && new Date().getMinutes() === 0) {
+                 viewDate = todayStr;
+                 renderContent();
+            }
         }
 
-        function borrarRegistro(id) {
-            Swal.fire({title: '¿Eliminar?', text: "Se borrará este registro.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#E5E7EB', confirmButtonText: 'Sí, borrar', cancelButtonText: 'Cancelar', customClass: { cancelButton: 'text-gray-600' }}).then((r)=>{
-                if(r.isConfirmed){ registers=registers.filter(r=>r.id!==id); localStorage.setItem('darsena_registros',JSON.stringify(registers)); verReporte(); updateBadge(); }
-            }) 
-        }
+        // Comprobar notificaciones cada minuto
+        setInterval(checkNotifications, 60000);
 
-        async function enviarTodoNube() {
-            const url = localStorage.getItem('darsena_cloud_url');
-            if(!url) return Swal.fire('Error', 'Script no conectado.', 'error');
-            if(registers.length === 0) return Swal.fire('Vacío', 'Nada que enviar.', 'info');
-            Swal.fire({title: 'Subiendo...', text:'Por favor espera', allowOutsideClick: false, didOpen: () => { Swal.showLoading() }});
-            try {
-                await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(registers) });
-                Swal.fire({ icon: 'success', title: '¡Enviado!', text: 'Datos subidos correctamente.' });
-                registers = []; localStorage.setItem('darsena_registros', JSON.stringify([])); updateBadge();
-            } catch (error) { console.error(error); Swal.fire('Error', 'Fallo de conexión.', 'error'); }
-        }
+        // --- 6. INICIALIZACIÓN ---
+        window.onload = () => {
+            // Manejar pantalla de bienvenida
+            setTimeout(() => {
+                const splash = document.getElementById('splash');
+                splash.classList.add('splash-hidden');
+                setTimeout(() => splash.remove(), 800); // Remover del DOM
+                
+                // Renderizar contenido inicial
+                renderContent();
+            }, 2000);
 
-        function updateBadge() { 
-            const c = registers.length; 
-            const badgeSettings = document.getElementById('badge-count-settings');
-            if(badgeSettings) badgeSettings.innerText = c; 
-            const badgeNav = document.getElementById('badge-nav');
-            if(badgeNav) { if(c>0) badgeNav.classList.remove('hidden'); else badgeNav.classList.add('hidden'); }
-        }
+            // Chequeo inicial de notificaciones
+            checkNotifications();
+        };
 
-        function cerrarReportes() { document.getElementById('modal-reportes').classList.add('hidden'); }
-        function abrirGestionDB() { document.getElementById('modal-db').classList.remove('hidden'); }
-        function cerrarModalDB() { document.getElementById('modal-db').classList.add('hidden'); }
-        function abrirGestionCloud() { document.getElementById('modal-cloud').classList.remove('hidden'); }
-        function cerrarModalCloud() { document.getElementById('modal-cloud').classList.add('hidden'); }
-        
-        function guardarConfigDB() { let u=document.getElementById('db-url-input').value.trim(); if(u){localStorage.setItem('darsena_db_url',u); fetchGoogleSheet(u);} cerrarModalDB(); }
-        function borrarBaseDatos() { productsDB=[]; localStorage.removeItem('darsena_db'); localStorage.removeItem('darsena_db_url'); renderProductList(); cerrarModalDB(); }
-        
-        function guardarConfigCloud() { let u=document.getElementById('cloud-url-input').value.trim(); if(u){localStorage.setItem('darsena_cloud_url',u); 
-        const cloudStatusEl = document.getElementById('cloud-status');
-        if(cloudStatusEl) cloudStatusEl.innerText="Conectado Manual";} cerrarModalCloud(); }
-        
-        function descargarExcel() {
-            if(registers.length===0) return Swal.fire('Vacío','Sin datos','info');
-            let csv="\uFEFFFECHA;HORA;AUDITOR;DARSENA;CAMION;CODIGO;DESCRIPCION;PROVEEDOR;CANTIDAD;OBSERVACION\n";
-            registers.forEach(r=>{csv+=`${r.fecha};${r.hora};${r.auditor};${r.darsena};${r.camion};${r.code};${r.desc};${r.prov};${r.qty};${r.obs}\n`});
-            const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}); const link=document.createElement("a"); link.href=URL.createObjectURL(blob); link.download=`DARSENA_${new Date().toLocaleDateString().replace(/\//g,'-')}.csv`; link.click();
-        }
     </script>
 </body>
 </html>
