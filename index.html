@@ -43,6 +43,11 @@
 
     <style>
         /* Animaciones y estilos personalizados */
+        * {
+            /* Elimina el retraso de 300ms de los navegadores móviles al tocar */
+            touch-action: manipulation;
+        }
+
         body {
             -webkit-tap-highlight-color: transparent;
             user-select: none;
@@ -65,20 +70,21 @@
             margin: 0;
             font: inherit;
             color: currentColor;
-            width: 1.5em;
-            height: 1.5em;
+            width: 1.4em;
+            height: 1.4em;
             border: 2px solid #cbd5e1;
             border-radius: 50%;
             display: grid;
             place-content: center;
-            transition: all 0.3s ease-in-out;
+            transition: all 0.2s ease-in-out;
             cursor: pointer;
+            pointer-events: none; /* Hace que el clic pase al contenedor padre */
         }
 
         .custom-checkbox::before {
             content: "";
-            width: 0.8em;
-            height: 0.8em;
+            width: 0.7em;
+            height: 0.7em;
             clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
             transform: scale(0);
             background-color: white;
@@ -95,9 +101,15 @@
             transform: scale(1);
         }
 
-        /* Animación para botones */
+        /* Animación para botones y tarjetas */
         .btn-active:active {
-            transform: scale(0.95);
+            transform: scale(0.97);
+        }
+        
+        /* Efecto presionar tarjeta entera */
+        .task-card:active {
+            transform: scale(0.98);
+            background-color: #f8fafc;
         }
 
         /* Scrollbar oculto para diseño más limpio */
@@ -111,13 +123,13 @@
 
     <!-- PANTALLA DE BIENVENIDA -->
     <div id="splash" class="splash-screen fixed inset-0 z-50 flex flex-col items-center justify-center bg-blue-900 text-white">
-        <i class="fas fa-chart-line text-6xl mb-4 animate-bounce"></i>
+        <i class="fas fa-chart-line text-5xl mb-4 animate-bounce"></i>
         <h1 class="text-3xl font-bold tracking-wide">Analista de</h1>
         <h1 class="text-3xl font-bold tracking-wide text-blue-300">Operaciones</h1>
         <div class="mt-8 flex space-x-2">
-            <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-            <div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
-            <div class="w-3 h-3 bg-white rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
+            <div class="w-2.5 h-2.5 bg-white rounded-full animate-pulse"></div>
+            <div class="w-2.5 h-2.5 bg-white rounded-full animate-pulse" style="animation-delay: 0.2s"></div>
+            <div class="w-2.5 h-2.5 bg-white rounded-full animate-pulse" style="animation-delay: 0.4s"></div>
         </div>
     </div>
 
@@ -125,37 +137,37 @@
     <div id="app" class="flex flex-col h-full max-w-md mx-auto bg-slate-50 relative shadow-2xl">
         
         <!-- CABECERA -->
-        <header class="bg-blue-900 text-white p-4 shadow-md z-10">
-            <h2 id="header-title" class="text-xl font-bold flex items-center">
+        <header class="bg-blue-900 text-white p-3.5 shadow-md z-10">
+            <h2 id="header-title" class="text-lg font-bold flex items-center">
                 <i class="fas fa-calendar-check mr-2"></i> Tareas de Hoy
             </h2>
-            <p id="header-subtitle" class="text-blue-200 text-sm mt-1"></p>
+            <p id="header-subtitle" class="text-blue-200 text-xs mt-0.5"></p>
         </header>
 
         <!-- ÁREA DE CONTENIDO (Scrollable) -->
-        <main id="main-content" class="flex-1 overflow-y-auto p-4 pb-24 space-y-4">
+        <main id="main-content" class="flex-1 overflow-y-auto p-3 pb-24 space-y-2.5">
             <!-- El contenido se inyecta por JS -->
         </main>
 
         <!-- BARRA DE NAVEGACIÓN INFERIOR -->
-        <nav class="absolute bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-3 pb-6 sm:pb-3 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+        <nav class="absolute bottom-0 w-full bg-white border-t border-slate-200 flex justify-around p-2 pb-5 sm:pb-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
             <button onclick="switchTab('hoy')" id="tab-hoy" class="btn-active flex flex-col items-center p-2 text-blue-600 transition-colors w-1/3">
                 <i class="fas fa-list-check text-xl mb-1"></i>
-                <span class="text-xs font-semibold">Hoy</span>
+                <span class="text-[10px] font-semibold uppercase tracking-wider">Hoy</span>
             </button>
             <button onclick="switchTab('historial')" id="tab-historial" class="btn-active flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors w-1/3">
                 <i class="fas fa-calendar-alt text-xl mb-1"></i>
-                <span class="text-xs font-semibold">Historial</span>
+                <span class="text-[10px] font-semibold uppercase tracking-wider">Historial</span>
             </button>
             <button onclick="switchTab('configuracion')" id="tab-configuracion" class="btn-active flex flex-col items-center p-2 text-slate-400 hover:text-blue-600 transition-colors w-1/3">
                 <i class="fas fa-cog text-xl mb-1"></i>
-                <span class="text-xs font-semibold">Configurar</span>
+                <span class="text-[10px] font-semibold uppercase tracking-wider">Ajustes</span>
             </button>
         </nav>
     </div>
 
     <!-- NOTIFICACIÓN TIPO TOAST INTEGRADA -->
-    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-blue-800 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center">
+    <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-full shadow-xl transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center text-sm font-medium">
         <i id="toast-icon" class="fas fa-info-circle mr-2"></i>
         <span id="toast-msg">Mensaje</span>
     </div>
@@ -173,9 +185,7 @@
             { id: 't8', text: 'Clientes no visitados por camion', type: 'default', notify: false, time: '17:00' }
         ];
 
-        // Cargar datos de localStorage o usar defaults
         let tasks = JSON.parse(localStorage.getItem('ops_tasks')) || TAREAS_POR_DEFECTO;
-        // Historial formato: { 'YYYY-MM-DD': { 't1': '08:30', 't2': '09:15' } }
         let history = JSON.parse(localStorage.getItem('ops_history')) || {};
         let notificationsSent = JSON.parse(localStorage.getItem('ops_notified')) || {};
 
@@ -185,7 +195,6 @@
         // --- 2. FUNCIONES DE UTILIDAD ---
         function getTodayDateString() {
             const today = new Date();
-            // Formato YYYY-MM-DD ajustado a la zona horaria local
             return today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
         }
 
@@ -196,7 +205,7 @@
 
         function formatDateDisplay(dateString) {
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const date = new Date(dateString + 'T00:00:00'); // Evitar problemas de zona horaria
+            const date = new Date(dateString + 'T00:00:00'); 
             return date.toLocaleDateString('es-ES', options);
         }
 
@@ -219,20 +228,18 @@
                 icon.className = 'fas fa-info-circle mr-2 text-blue-400';
             }
 
-            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
-            toast.classList.add('opacity-100', 'translate-y-0');
+            toast.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4', 'scale-95');
+            toast.classList.add('opacity-100', 'translate-y-0', 'scale-100');
             
             setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
-            }, 3000);
+                toast.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+                toast.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4', 'scale-95');
+            }, 2500);
         }
 
-        // --- 3. LOGICA DE VISTAS (TABS) ---
+        // --- 3. LÓGICA DE VISTAS ---
         function switchTab(tab) {
             currentTab = tab;
-            
-            // Actualizar UI de botones
             ['hoy', 'historial', 'configuracion'].forEach(t => {
                 const btn = document.getElementById(`tab-${t}`);
                 if (t === tab) {
@@ -243,8 +250,27 @@
                     btn.classList.add('text-slate-400');
                 }
             });
-
             renderContent();
+        }
+
+        // Actualiza el porcentaje y contadores de la barra superior sin recargar la lista
+        function updateProgressUI() {
+            const todayStr = getTodayDateString();
+            let completedCount = 0;
+            if (history[todayStr]) {
+                tasks.forEach(task => {
+                    if (history[todayStr].hasOwnProperty(task.id)) completedCount++;
+                });
+            }
+            const progressPct = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
+            
+            const pctText = document.getElementById('progress-pct');
+            const bar = document.getElementById('progress-bar');
+            const countText = document.getElementById('progress-count');
+            
+            if (pctText) pctText.innerText = `${progressPct}%`;
+            if (bar) bar.style.width = `${progressPct}%`;
+            if (countText) countText.innerText = `${completedCount} de ${tasks.length} tareas completadas`;
         }
 
         function renderContent() {
@@ -261,44 +287,40 @@
                 
                 if (!history[todayStr]) history[todayStr] = {};
 
-                let completedCount = 0;
+                // Estructura de la barra de progreso (con IDs para actualizar rápido)
+                const progressDiv = document.createElement('div');
+                progressDiv.className = 'mb-2 bg-white p-3 rounded-xl shadow-sm border border-slate-100 sticky top-0 z-10';
+                progressDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-xs font-semibold text-slate-600 uppercase tracking-wide">Progreso diario</span>
+                        <span id="progress-pct" class="text-sm font-bold text-blue-600">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div id="progress-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-count" class="text-[10px] text-slate-500 mt-1.5 text-center">0 de ${tasks.length} completadas</p>
+                `;
+                main.appendChild(progressDiv);
 
                 tasks.forEach(task => {
                     const isCompleted = history[todayStr].hasOwnProperty(task.id);
                     const timeCompleted = isCompleted ? history[todayStr][task.id] : null;
-                    if (isCompleted) completedCount++;
-
                     main.appendChild(createTaskElement(task, isCompleted, timeCompleted, true, todayStr));
                 });
 
-                // Barra de progreso
-                const progressDiv = document.createElement('div');
-                const progressPct = tasks.length === 0 ? 0 : Math.round((completedCount / tasks.length) * 100);
-                progressDiv.innerHTML = `
-                    <div class="mb-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-medium text-slate-700">Progreso diario</span>
-                            <span class="text-sm font-bold text-blue-600">${progressPct}%</span>
-                        </div>
-                        <div class="w-full bg-slate-200 rounded-full h-2.5">
-                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: ${progressPct}%"></div>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-2 text-center">${completedCount} de ${tasks.length} tareas completadas</p>
-                    </div>
-                `;
-                main.insertBefore(progressDiv, main.firstChild);
+                updateProgressUI();
 
             } else if (currentTab === 'historial') {
                 title.innerHTML = '<i class="fas fa-history mr-2"></i> Historial';
                 subtitle.innerText = 'Revisa días anteriores';
 
                 main.innerHTML = `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-4 sticky top-0 z-10">
-                        <label class="block text-sm font-medium text-slate-700 mb-2">Seleccionar Fecha:</label>
+                    <div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 mb-3 sticky top-0 z-10">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide mb-1.5">Seleccionar Fecha</label>
                         <input type="date" id="history-date" value="${viewDate}" max="${todayStr}" 
-                               class="w-full p-2 border border-slate-300 rounded-lg text-slate-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all">
+                               class="w-full p-2 border border-slate-200 rounded-lg text-sm text-slate-700 focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                     </div>
-                    <div id="history-list" class="space-y-3"></div>
+                    <div id="history-list" class="space-y-2.5"></div>
                 `;
 
                 document.getElementById('history-date').addEventListener('change', (e) => {
@@ -309,57 +331,45 @@
                 renderHistoryList();
 
             } else if (currentTab === 'configuracion') {
-                title.innerHTML = '<i class="fas fa-sliders-h mr-2"></i> Configuración';
+                title.innerHTML = '<i class="fas fa-sliders-h mr-2"></i> Ajustes';
                 subtitle.innerText = 'Gestiona tus tareas y alertas';
 
                 // Añadir nueva tarea
                 const addDiv = document.createElement('div');
-                addDiv.className = 'bg-white p-4 rounded-xl shadow-sm border border-slate-100 mb-6';
+                addDiv.className = 'bg-white p-3.5 rounded-xl shadow-sm border border-slate-100 mb-4';
                 addDiv.innerHTML = `
-                    <h3 class="font-semibold text-slate-800 mb-3"><i class="fas fa-plus-circle text-blue-500 mr-2"></i>Nueva Tarea</h3>
+                    <h3 class="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-2"><i class="fas fa-plus-circle text-blue-500 mr-1.5"></i>Nueva Tarea</h3>
                     <div class="flex gap-2">
-                        <input type="text" id="new-task-text" placeholder="Ej. Revisar correos gerencia..." class="flex-1 p-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
-                        <button onclick="addTask()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium btn-active hover:bg-blue-700"><i class="fas fa-plus"></i></button>
+                        <input type="text" id="new-task-text" placeholder="Ej. Revisar correos..." class="flex-1 p-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button onclick="addTask()" class="bg-blue-600 text-white px-3.5 py-2 rounded-lg text-sm font-medium btn-active hover:bg-blue-700"><i class="fas fa-plus"></i></button>
                     </div>
                 `;
                 main.appendChild(addDiv);
 
-                // Lista de configuración de tareas
+                // Lista de configuración
                 const listDiv = document.createElement('div');
-                listDiv.className = 'space-y-4';
+                listDiv.className = 'space-y-3';
                 
                 tasks.forEach(task => {
                     const taskCard = document.createElement('div');
-                    taskCard.className = 'bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-3';
+                    taskCard.className = 'bg-white p-3 rounded-xl shadow-sm border border-slate-100 flex flex-col gap-2.5';
                     taskCard.innerHTML = `
                         <div class="flex justify-between items-start">
-                            <p class="text-sm font-medium text-slate-800 flex-1 pr-2">${task.text}</p>
+                            <p class="text-[13px] font-medium text-slate-700 leading-snug flex-1 pr-2">${task.text}</p>
                             ${task.type === 'custom' ? `<button onclick="deleteTask('${task.id}')" class="text-red-400 hover:text-red-600 p-1 btn-active"><i class="fas fa-trash"></i></button>` : ''}
                         </div>
                         <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-100">
-                            <div class="flex items-center">
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                  <input type="checkbox" class="sr-only peer" ${task.notify ? 'checked' : ''} onchange="toggleNotify('${task.id}', this.checked)">
-                                  <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
-                                  <span class="ml-2 text-xs font-medium text-slate-600"><i class="fas fa-bell ${task.notify ? 'text-blue-500' : 'text-slate-400'} mr-1"></i>Aviso</span>
-                                </label>
-                            </div>
-                            <input type="time" value="${task.time || '09:00'}" onchange="updateTaskTime('${task.id}', this.value)" class="p-1 border border-slate-300 rounded text-xs text-slate-700 focus:ring-1 focus:ring-blue-500 outline-none">
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" class="sr-only peer" ${task.notify ? 'checked' : ''} onchange="toggleNotify('${task.id}', this.checked)">
+                                <div class="w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-500"></div>
+                                <span class="ml-2 text-[11px] font-medium text-slate-600"><i class="fas fa-bell ${task.notify ? 'text-blue-500' : 'text-slate-400'} mr-1"></i>Aviso</span>
+                            </label>
+                            <input type="time" value="${task.time || '09:00'}" onchange="updateTaskTime('${task.id}', this.value)" class="p-1 border border-slate-200 rounded text-xs text-slate-700 focus:ring-1 focus:ring-blue-500 outline-none bg-white">
                         </div>
                     `;
                     listDiv.appendChild(taskCard);
                 });
                 main.appendChild(listDiv);
-
-                // Botón permiso notificaciones
-                const notifPermDiv = document.createElement('div');
-                notifPermDiv.className = 'mt-6 text-center';
-                notifPermDiv.innerHTML = `
-                    <button onclick="requestNotificationPermission()" class="text-xs text-blue-600 underline">
-                        Probar permisos de notificación del celular
-                    </button>
-                `;
-                main.appendChild(notifPermDiv);
             }
         }
 
@@ -371,9 +381,9 @@
 
             if (!dayHistory || Object.keys(dayHistory).length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-10 text-slate-400">
-                        <i class="fas fa-folder-open text-4xl mb-3 opacity-50"></i>
-                        <p>No hay registros para este día.</p>
+                    <div class="text-center py-8 text-slate-400">
+                        <i class="fas fa-folder-open text-3xl mb-2 opacity-50"></i>
+                        <p class="text-sm">No hay registros para este día.</p>
                     </div>
                 `;
                 return;
@@ -381,36 +391,45 @@
 
             tasks.forEach(task => {
                 const isCompleted = dayHistory.hasOwnProperty(task.id);
-                if (isCompleted) {
-                    const timeCompleted = dayHistory[task.id];
-                    container.appendChild(createTaskElement(task, true, timeCompleted, false, viewDate));
-                } else {
-                    container.appendChild(createTaskElement(task, false, null, false, viewDate));
-                }
+                const timeCompleted = isCompleted ? dayHistory[task.id] : null;
+                container.appendChild(createTaskElement(task, isCompleted, timeCompleted, false, viewDate));
             });
         }
 
         function createTaskElement(task, isCompleted, timeCompleted, isInteractive, dateKey) {
             const div = document.createElement('div');
-            // Cambiar estilos si está completado
-            const bgClass = isCompleted ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200';
-            const textClass = isCompleted ? 'text-slate-500 line-through' : 'text-slate-800';
+            div.id = `task-card-${task.id}`;
             
-            div.className = `p-4 rounded-xl border shadow-sm transition-all duration-300 flex items-center justify-between gap-3 ${bgClass}`;
+            // Tamaños más compactos: p-3 py-2.5, gap-2.5
+            const bgClass = isCompleted ? 'bg-green-50/50 border-green-200' : 'bg-white border-slate-200';
+            const cursorClass = isInteractive ? 'cursor-pointer task-card' : '';
             
-            let html = `<div class="flex-1">
-                            <p class="text-sm font-medium ${textClass} transition-colors duration-300">${task.text}</p>
-                            ${isCompleted && timeCompleted ? `<p class="text-xs text-green-600 mt-1 font-semibold"><i class="fas fa-check-double mr-1"></i>Realizado a las ${timeCompleted}</p>` : `<p class="text-xs text-amber-500 mt-1"><i class="fas fa-clock mr-1"></i>Pendiente</p>`}
+            div.className = `p-3 py-2.5 rounded-xl border shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-colors duration-200 flex items-center justify-between gap-2.5 ${bgClass} ${cursorClass}`;
+            
+            const textClass = isCompleted ? 'text-slate-400 line-through' : 'text-slate-700';
+            const subTextHtml = isCompleted && timeCompleted 
+                ? `<p class="text-[11px] text-green-600 mt-0.5 font-semibold"><i class="fas fa-check-double mr-1"></i>Realizado a las ${timeCompleted}</p>` 
+                : `<p class="text-[11px] text-amber-500 mt-0.5"><i class="fas fa-clock mr-1"></i>Pendiente</p>`;
+            
+            let html = `<div class="flex-1 text-container">
+                            <p class="text-[13px] font-medium leading-snug ${textClass}">${task.text}</p>
+                            ${subTextHtml}
                         </div>`;
 
             if (isInteractive) {
-                html += `<div>
-                            <input type="checkbox" class="custom-checkbox btn-active" ${isCompleted ? 'checked' : ''} onclick="toggleTaskStatus('${task.id}', '${dateKey}', this.checked)">
+                html += `<div class="shrink-0 flex items-center justify-center">
+                            <input type="checkbox" id="cb-${task.id}" class="custom-checkbox" ${isCompleted ? 'checked' : ''}>
                          </div>`;
+                         
+                // TODA LA TARJETA ES Clickeable para mejor experiencia móvil
+                div.onclick = () => {
+                    const cb = document.getElementById(`cb-${task.id}`);
+                    cb.checked = !cb.checked; // Invertir visualmente
+                    handleTaskToggle(task.id, dateKey, cb.checked);
+                };
             } else {
-                // Solo mostrar icono en historial
-                html += `<div>
-                            ${isCompleted ? '<i class="fas fa-check-circle text-2xl text-green-500"></i>' : '<i class="fas fa-circle text-2xl text-slate-200"></i>'}
+                html += `<div class="shrink-0">
+                            ${isCompleted ? '<i class="fas fa-check-circle text-xl text-green-500"></i>' : '<i class="fas fa-circle text-xl text-slate-200"></i>'}
                          </div>`;
             }
 
@@ -418,21 +437,46 @@
             return div;
         }
 
-        // --- 4. ACCIONES DE TAREAS ---
-        function toggleTaskStatus(taskId, dateKey, isChecked) {
+        // --- 4. ACCIONES DE TAREAS Y ACTUALIZACIÓN DIRECTA (DOM) ---
+        // Actualiza sin recargar toda la lista para evitar retrasos "toscos"
+        function handleTaskToggle(taskId, dateKey, isChecked) {
             if (!history[dateKey]) history[dateKey] = {};
+            const time = getCurrentTime();
 
             if (isChecked) {
-                history[dateKey][taskId] = getCurrentTime();
-                showToast('¡Tarea marcada como hecha!');
+                history[dateKey][taskId] = time;
+                // Pequeña vibración nativa si está disponible al marcar
+                if ("vibrate" in navigator) navigator.vibrate(50);
             } else {
                 delete history[dateKey][taskId];
             }
             saveData();
-            // Re-renderizar después de una pequeña pausa para ver la animación
-            setTimeout(() => {
-                if(currentTab === 'hoy') renderContent();
-            }, 300);
+            
+            // Actualización visual instantánea de la tarjeta específica
+            const card = document.getElementById(`task-card-${taskId}`);
+            if (card) {
+                const textContainer = card.querySelector('.text-container');
+                const taskText = tasks.find(t => t.id === taskId).text;
+
+                if (isChecked) {
+                    card.classList.remove('bg-white', 'border-slate-200');
+                    card.classList.add('bg-green-50/50', 'border-green-200');
+                    textContainer.innerHTML = `
+                        <p class="text-[13px] font-medium leading-snug text-slate-400 line-through">${taskText}</p>
+                        <p class="text-[11px] text-green-600 mt-0.5 font-semibold"><i class="fas fa-check-double mr-1"></i>Realizado a las ${time}</p>
+                    `;
+                } else {
+                    card.classList.remove('bg-green-50/50', 'border-green-200');
+                    card.classList.add('bg-white', 'border-slate-200');
+                    textContainer.innerHTML = `
+                        <p class="text-[13px] font-medium leading-snug text-slate-700">${taskText}</p>
+                        <p class="text-[11px] text-amber-500 mt-0.5"><i class="fas fa-clock mr-1"></i>Pendiente</p>
+                    `;
+                }
+            }
+            
+            // Actualizar la barra de arriba al instante
+            updateProgressUI();
         }
 
         function addTask() {
@@ -457,7 +501,7 @@
         }
 
         function deleteTask(taskId) {
-            if(confirm('¿Eliminar esta tarea de tu lista diaria? (No borrará el historial pasado)')) {
+            if(confirm('¿Eliminar esta tarea de tu lista diaria?')) {
                 tasks = tasks.filter(t => t.id !== taskId);
                 saveData();
                 renderContent();
@@ -487,14 +531,9 @@
 
         // --- 5. SISTEMA DE NOTIFICACIONES ---
         function requestNotificationPermission() {
-            if (!("Notification" in window)) {
-                showToast("Tu navegador no soporta notificaciones", "warning");
-            } else if (Notification.permission !== "denied") {
-                Notification.requestPermission().then(function (permission) {
-                    if (permission === "granted") {
-                        showToast("Notificaciones habilitadas correctamente");
-                    }
-                });
+            if (!("Notification" in window)) return;
+            if (Notification.permission !== "denied" && Notification.permission !== "granted") {
+                Notification.requestPermission();
             }
         }
 
@@ -502,25 +541,19 @@
             if ("Notification" in window && Notification.permission === "granted") {
                 new Notification(title, {
                     body: body,
-                    icon: "https://cdn-icons-png.flaticon.com/512/2645/2645879.png" // Icono genérico checklist
+                    icon: "https://cdn-icons-png.flaticon.com/512/2645/2645879.png"
                 });
-                
-                // Vibración en dispositivos móviles (Samsung A7)
-                if ("vibrate" in navigator) {
-                    navigator.vibrate([200, 100, 200]);
-                }
+                if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
             } else {
-                // Fallback si no hay permisos nativos
-                showToast(`🔔 ${title}: ${body}`);
+                showToast(`🔔 Recordatorio: ${body}`);
                 if ("vibrate" in navigator) navigator.vibrate([200, 100, 200]);
             }
         }
 
         function checkNotifications() {
             const todayStr = getTodayDateString();
-            const currentTime = getCurrentTime(); // "HH:MM"
+            const currentTime = getCurrentTime();
 
-            // Limpiar historial de notificaciones si es un nuevo día
             const lastNotifiedDay = localStorage.getItem('ops_last_notified_day');
             if(lastNotifiedDay !== todayStr) {
                 notificationsSent = {};
@@ -531,7 +564,6 @@
             tasks.forEach(task => {
                 if (task.notify && task.time === currentTime) {
                     const notifyKey = `${todayStr}_${task.id}`;
-                    // Verificar si ya fue completada hoy o si ya se envió notificación
                     const isCompleted = history[todayStr] && history[todayStr].hasOwnProperty(task.id);
                     
                     if (!isCompleted && !notificationsSent[notifyKey]) {
@@ -542,29 +574,22 @@
                 }
             });
             
-            // Si el día cambió estando la app abierta, re-renderizar la pestaña hoy
             if(currentTab === 'hoy' && viewDate !== todayStr && new Date().getHours() === 0 && new Date().getMinutes() === 0) {
                  viewDate = todayStr;
                  renderContent();
             }
         }
 
-        // Comprobar notificaciones cada minuto
         setInterval(checkNotifications, 60000);
 
         // --- 6. INICIALIZACIÓN ---
         window.onload = () => {
-            // Manejar pantalla de bienvenida
             setTimeout(() => {
                 const splash = document.getElementById('splash');
                 splash.classList.add('splash-hidden');
-                setTimeout(() => splash.remove(), 800); // Remover del DOM
-                
-                // Renderizar contenido inicial
+                setTimeout(() => splash.remove(), 800); 
                 renderContent();
-            }, 2000);
-
-            // Chequeo inicial de notificaciones
+            }, 1500); // Reducido el tiempo de splash screen a 1.5s
             checkNotifications();
         };
 
